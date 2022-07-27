@@ -187,16 +187,16 @@ class _OfficeListTileState extends State<OfficeListTile> {
           maxLines: 3,
         ),
       ),
-      leading: widget.office.image.isNotEmpty
-          ? SizedBox(
-              width: MediaQuery.of(context).size.width * 0.1,
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(widget.office.image),
-              ),
-            )
-          : Container(),
+      // leading: widget.office.image.isNotEmpty
+      //     ? SizedBox(
+      //         width: MediaQuery.of(context).size.width * 0.1,
+      //         child: CircleAvatar(
+      //           backgroundImage: NetworkImage(widget.office.image),
+      //         ),
+      //       )
+      //     : Container(),
       trailing: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
+        width: MediaQuery.of(context).size.width * 0.4,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -280,10 +280,12 @@ class MapButton extends StatelessWidget {
     return Expanded(
       child: IconButton(
         onPressed: () => _onPressed.call(),
-        icon: Icon(_icon, size: 18),
-        padding: EdgeInsets.all(0.0),
+        icon: Icon(_icon, size: 22),
+        padding: const EdgeInsets.all(0.0),
         alignment: Alignment.centerLeft,
         color: Colors.black,
+        splashRadius: 50,
+        splashColor: Colors.lightGreen,
       ),
     );
   }
