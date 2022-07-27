@@ -169,7 +169,9 @@ class _OfficeListTileState extends State<OfficeListTile> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            MapButton(icon: Icons.location_pin,onPressed: (){},),
+            MapButton(icon: Icons.location_pin,onPressed: (){
+
+            },),
             MapButton(icon: Icons.drive_eta,onPressed: (){},),
             MapButton(icon: Icons.directions_walk,onPressed: (){},),
             MapButton(icon: Icons.directions_transit_filled,onPressed: (){},),
