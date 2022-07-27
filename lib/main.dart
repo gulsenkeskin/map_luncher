@@ -1,6 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:map_launcher/map_launcher.dart';
+import 'package:map_luncher_demo/src/maps.sheet.dart';
 import 'src/locations.dart' as locations;
+import 'package:location/location.dart';
 
 void main() {
   runApp(const MyApp());
@@ -98,7 +100,7 @@ class OfficeList extends StatelessWidget {
             ? const Center(child: CircularProgressIndicator.adaptive())
             : Container(
                 alignment: Alignment.centerLeft,
-                color: Colors.green[50],
+                color: Colors.lightGreen[50],
                 width: MediaQuery.of(ctx).size.width,
                 height: MediaQuery.of(ctx).size.height * 0.13,
                 child: OfficeListTile(office: _googleOffices[index]),
@@ -122,6 +124,7 @@ class OfficeListTile extends StatefulWidget {
 
 class _OfficeListTileState extends State<OfficeListTile> {
   bool _disposed = false;
+  Location location = Location();
 
   @override
   void initState() {
@@ -132,6 +135,35 @@ class _OfficeListTileState extends State<OfficeListTile> {
   void dispose() {
     _disposed = true;
     super.dispose();
+  }
+
+  fetchLocation() async {
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    LocationData _currentPosition = await location.getLocation();
+    location.onLocationChanged.listen((LocationData currentLocation) {
+      setState(() {
+        _currentPosition = currentLocation;
+      });
+    });
+    return _currentPosition;
   }
 
   @override
@@ -169,17 +201,66 @@ class _OfficeListTileState extends State<OfficeListTile> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            MapButton(icon: Icons.location_pin,onPressed: (){
-
-            },),
-            MapButton(icon: Icons.drive_eta,onPressed: (){},),
-            MapButton(icon: Icons.directions_walk,onPressed: (){},),
-            MapButton(icon: Icons.directions_transit_filled,onPressed: (){},),
-            MapButton(icon: Icons.directions_bike_outlined,onPressed: (){},),
+            MapButton(
+              icon: Icons.location_pin,
+              onPressed: () {
+                MapsSheet.show(
+                  context: context,
+                  onMapTap: (map) {
+                    map.showMarker(
+                      coords: Coords(widget.office.lat, widget.office.lng),
+                      title: widget.office.name,
+                      zoom: 15,
+                    );
+                  },
+                );
+              },
+            ),
+            MapButton(
+              icon: Icons.drive_eta,
+              onPressed: () async {
+                await MapButtonOnPressed(context, DirectionsMode.driving);
+              },
+            ),
+            MapButton(
+              icon: Icons.directions_walk,
+              onPressed: () async {
+                await MapButtonOnPressed(context, DirectionsMode.walking);
+              },
+            ),
+            MapButton(
+              icon: Icons.directions_transit_filled,
+              onPressed: () async {
+                await MapButtonOnPressed(context, DirectionsMode.transit);
+              },
+            ),
+            MapButton(
+              icon: Icons.directions_bike_outlined,
+              onPressed: () async {
+                await MapButtonOnPressed(context, DirectionsMode.bicycling);
+              },
+            ),
           ],
         ),
       ),
       onTap: () async {},
+    );
+  }
+
+  Future<void> MapButtonOnPressed(
+      BuildContext context, DirectionsMode mode) async {
+    var position = await fetchLocation();
+
+    MapsSheet.show(
+      context: context,
+      onMapTap: (map) {
+        map.showDirections(
+            destination: Coords(widget.office.lat, widget.office.lng),
+            destinationTitle: widget.office.name,
+            origin: Coords(position.latitude, position.longitude),
+            originTitle: "My Location",
+            directionsMode: mode);
+      },
     );
   }
 }
@@ -198,7 +279,7 @@ class MapButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: IconButton(
-        onPressed: () => _onPressed,
+        onPressed: () => _onPressed.call(),
         icon: Icon(_icon, size: 18),
         padding: EdgeInsets.all(0.0),
         alignment: Alignment.centerLeft,
